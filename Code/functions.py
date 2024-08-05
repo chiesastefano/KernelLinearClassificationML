@@ -36,8 +36,8 @@ def zero_one_loss(y_pred, y_true):
     Calculate the 0-1 loss.
 
     Parameters:
-    y_true (np.ndarray): True labels.
-    y_pred (np.ndarray): Predicted labels.
+    y_true: True labels.
+    y_pred: Predicted labels.
 
     Returns:
     float: The 0-1 loss.
@@ -61,7 +61,7 @@ def pegasos(x, y, lam, epochs, batch_size):
     Returns:
     -------
     w : The final weights of the SVM after training.
-    predictions = The predicted labels for the input data.
+    predictions: The predicted labels for the input data.
     """
 
     if batch_size > x.shape[0]:
