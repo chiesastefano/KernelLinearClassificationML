@@ -14,6 +14,7 @@ def perceptron(x, y, n, epochs=1):
     Returns:
     -------
     w = The final weights of the Perceptron after training, including the bias term.
+    predictions = The predicted labels for the input data.
     """
     x = np.insert(x, 0, 1, axis=1)  # Insert a column of ones for the bias term
     w = np.zeros(x.shape[1])  # Initialize weights to zero
@@ -27,6 +28,19 @@ def perceptron(x, y, n, epochs=1):
             elif prediction > 0 and y[i] == -1:
                 w = w - n * x[i]
 
-    return w
+    predictions = np.sign(np.dot(x, w))
+    return w, predictions
 
+def zero_one_loss(y_pred, y_true):
+    """
+    Calculate the 0-1 loss.
 
+    Parameters:
+    y_true (np.ndarray): True labels.
+    y_pred (np.ndarray): Predicted labels.
+
+    Returns:
+    float: The 0-1 loss.
+    """
+    misclassifications = np.sum(y_pred != y_true)
+    return int(misclassifications)
