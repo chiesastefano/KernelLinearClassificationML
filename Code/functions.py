@@ -80,6 +80,8 @@ def pegasos(x, y, lam, epochs, batch_size):
 
     return w, predictions
 
+def regularized_logistic():
+    
 
 def split_data(data, train_ratio=0.7):
     """Split the dataset into training and testing sets."""
