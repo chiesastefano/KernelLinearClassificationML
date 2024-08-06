@@ -16,7 +16,6 @@ def perceptron(x, y, n, epochs=1000):
     w = The final weights of the Perceptron after training, including the bias term.
     predictions = The predicted labels for the input data.
     """
-    x = np.insert(x, 0, 1, axis=1)  # Insert a column of ones for the bias term
     w = np.zeros(x.shape[1])  # Initialize weights to zero
 
     for epoch in range(epochs):
@@ -30,23 +29,6 @@ def perceptron(x, y, n, epochs=1000):
 
     predictions = np.sign(np.dot(x, w))
     return w, predictions
-
-def zero_one_loss(y_pred, y_true, number_of_samples):
-    """
-    Calculate the 0-1 loss.
-
-    Parameters:
-    y_true: True labels.
-    y_pred: Predicted labels.
-    number_of_samples:  Number of samples in the dataset.
-
-    Returns:
-    miscassifications: The 0-1 loss.
-    """
-    # Compute the number of misclassifications
-    misclassifications = np.sum(y_pred != y_true) / number_of_samples
-
-    return misclassifications
 
 
 def pegasos(x, y, lam, epochs, batch_size):
@@ -104,6 +86,8 @@ def split_data(data, train_ratio=0.7):
     x = data.iloc[:, :-1].values
     y = data.iloc[:, -1].values
 
+    x = np.insert(x, 0, 1, axis=1)  # Insert a column of ones for the bias term
+
     indices = np.arange(x.shape[0])
     np.random.shuffle(indices)
 
@@ -116,3 +100,21 @@ def split_data(data, train_ratio=0.7):
     y_train, y_test = y[:split_index], y[split_index:]
 
     return x_train, x_test, y_train, y_test
+
+
+def zero_one_loss(y_pred, y_true, number_of_samples):
+    """
+    Calculate the 0-1 loss.
+
+    Parameters:
+    y_true: True labels.
+    y_pred: Predicted labels.
+    number_of_samples:  Number of samples in the dataset.
+
+    Returns:
+    miscassifications: The 0-1 loss.
+    """
+    # Compute the number of misclassifications
+    misclassifications = np.sum(y_pred != y_true) / number_of_samples
+
+    return misclassifications
