@@ -1,5 +1,7 @@
 
 import numpy as np
+import pandas as pd
+
 def perceptron(x, y, n, epochs=1000):
     """
     Train a Perceptron classifier using the Perceptron learning algorithm.
@@ -331,6 +333,63 @@ def grid_search(x, y, model, param_grid, k=5):
     return best_params, best_loss
 
 
+def polynomial_feature_expansion(data):
+    """
+    Applies a polynomial feature expansion of degree 2 to the input data.
+
+    Parameters:
+    data : pd.DataFrame
+        Input data where the last column is the label.
+
+    Returns:
+    expanded_data : pd.DataFrame
+        Expanded version of the data with new columns including:
+        - The squared terms of each feature
+        - All pairwise products of the features
+    """
+
+    # Separate features and label
+    x = data.iloc[:, :-1]  # All columns except the last one are features
+    y = data.iloc[:, -1]  # The last column is the label
+
+    # Number of original features
+    n = x.shape[1]
+
+    # Initialize lists to collect new feature columns
+    feature_columns = []
+
+    # Add original features
+    feature_columns.extend(x.columns)
+
+    # Add squared features and pairwise products
+    for i in range(n):
+        feature_columns.append(f'{x.columns[i]}^2')
+        for j in range(i + 1, n):  # Avoid duplicate pairs
+            feature_columns.append(f'{x.columns[i]}*{x.columns[j]}')
+
+    # Initialize DataFrame for the expanded features
+    expanded_features = pd.DataFrame(index=data.index, columns=feature_columns)
+
+    # Fill in the original features
+    expanded_features[x.columns] = x
+
+    # Fill in the squared features and pairwise products
+    k = len(x.columns)
+    for i in range(n):
+        expanded_features.iloc[:, k] = x.iloc[:, i] ** 2
+        k += 1
+        for j in range(i + 1, n):  # Avoid duplicate pairs
+            expanded_features.iloc[:, k] = x.iloc[:, i] * x.iloc[:, j]
+            k += 1
+
+    # Convert all columns to float
+    expanded_features = expanded_features.astype(float)
+
+    # Combine the expanded features with the target variable
+    expanded_data = pd.concat([expanded_features, y], axis=1)
+    expanded_data.columns = list(expanded_features.columns) + [data.columns[-1]]  # Ensure proper column naming
+
+    return expanded_data
 
 
 
