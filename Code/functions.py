@@ -8,10 +8,10 @@ def perceptron(x, y, n, epochs=1000):
 
     Parameters:
     ----------
-    x : The input feature matrix.
-    y : The target labels that contain values -1 or 1.
-    n : The learning rate for weight updates.
-    epochs (optional): The number of times to iterate over the entire dataset during training.
+    x: The input feature matrix.
+    y: The target labels that contain values -1 or 1.
+    n: The learning rate for weight updates.
+    epochs: The number of times to iterate over the entire dataset during training.
 
     Returns:
     -------
@@ -39,15 +39,15 @@ def pegasos(x, y, lam, epochs, batch_size):
 
     Parameters:
     ----------
-    x : The input feature matrix.
-    y : The target labels that contain values -1 or 1.
-    lam : The regularization parameter that controls the trade-off between maximizing the margin and minimizing the classification error.
-    epochs : The number of times to iterate over the entire dataset during training.
-    batch_size : The number of samples to process in each batch update step.
+    x: The input feature matrix.
+    y: The target labels that contain values -1 or 1.
+    lam: The regularization parameter that controls the trade-off between maximizing the margin and minimizing the classification error.
+    epochs: The number of times to iterate over the entire dataset during training.
+    batch_size: The number of samples to process in each batch update step.
 
     Returns:
     -------
-    w : The final weights of the SVM after training.
+    w: The final weights of the SVM after training.
     predictions: The predicted labels for the input data.
     """
 
@@ -83,26 +83,23 @@ def pegasos(x, y, lam, epochs, batch_size):
     return w, predictions
 
 
-import numpy as np
-
-
 def regularized_logistic(x, y, lam, epochs, batch_size, initial_eta=0.01, decay_rate=0.01):
     """
     Train a Logistic Regression classifier using stochastic gradient descent.
 
     Parameters:
     ----------
-    x : The input feature matrix with shape (n_samples, n_features).
-    y : The target labels containing values 1 or -1.
-    lam : The regularization parameter.
-    epochs : The number of times to iterate over the entire dataset during training.
+    x: The input feature matrix with shape (n_samples, n_features).
+    y: The target labels containing values 1 or -1.
+    lam: The regularization parameter.
+    epochs: The number of times to iterate over the entire dataset during training.
     batch_size : The number of samples to process in each batch update step.
-    initial_eta : The initial learning rate.
-    decay_rate : Decay rate for learning rate.
+    initial_eta: The initial learning rate.
+    decay_rate: Decay rate for learning rate.
 
     Returns:
     -------
-    w : The final weights of the logistic regression model after training.
+    w: The final weights of the logistic regression model after training.
     predictions: The predicted labels for the input data.
     """
 
@@ -200,13 +197,13 @@ def cross_validation_split(x, y, k):
 
        Parameters:
        ----------
-       x : The input feature matrix with shape (n_samples, n_features).
-       y : The target labels with shape (n_samples,).
-       k : The number of folds for cross-validation.
+       x: The input feature matrix with shape (n_samples, n_features).
+       y: The target labels with shape (n_samples,).
+       k: The number of folds for cross-validation.
 
        Returns:
        -------
-       folds : A list of k tuples, where each tuple contains:
+       folds: A list of k tuples, where each tuple contains:
            - x_fold : The feature matrix for the current fold (validation set).
            - y_fold : The target labels for the current fold (validation set).
        """
@@ -234,12 +231,12 @@ def evaluate_model(x_train, y_train, x_val, y_val, model, params):
 
     Parameters:
     ----------
-    x_train : The feature matrix for the training set
-    y_train : The target labels for the training set
-    x_val : The feature matrix for the validation set
-    y_val : The target labels for the validation set
-    model : A string indicating the model to be used ('perceptron', 'pegasos', 'logistic').
-    params : A dictionary containing hyperparameters for the model. The keys depend on the model:
+    x_train: The feature matrix for the training set
+    y_train: The target labels for the training set
+    x_val: The feature matrix for the validation set
+    y_val: The target labels for the validation set
+    model: A string indicating the model to be used ('perceptron', 'pegasos', 'logistic').
+    params: A dictionary containing hyperparameters for the model. The keys depend on the model:
         - For 'perceptron': {'n': learning_rate, 'epochs': number_of_epochs}
         - For 'pegasos': {'lam': regularization_param, 'epochs': number_of_epochs, 'batch_size': batch_size}
         - For 'logistic': {'lam': regularization_param, 'epochs': number_of_epochs, 'batch_size': batch_size}
@@ -267,11 +264,11 @@ def generate_combinations(param_grid):
 
     Parameters:
     ----------
-    param_grid : A dictionary where keys are hyperparameter names and values are lists of possible values for those hyperparameters.
+    param_grid: A dictionary where keys are hyperparameter names and values are lists of possible values for those hyperparameters.
 
     Returns:
     -------
-    combinations : A list of dictionaries, where each dictionary represents a combination of hyperparameters.
+    combinations: A list of dictionaries, where each dictionary represents a combination of hyperparameters.
     """
     keys = list(param_grid.keys())
     combinations = []
@@ -299,7 +296,7 @@ def grid_search(x, y, model, param_grid, k=5):
     y : The target labels
     model : A string indicating the model to be tuned ('perceptron', 'pegasos', 'logistic').
     param_grid : A dictionary where keys are hyperparameter names and values are lists of possible values for those hyperparameters.
-    k : The number of folds for cross-validation (default is 10).
+    k: The number of folds for cross-validation (default is 10).
 
     Returns:
     -------
@@ -338,12 +335,10 @@ def polynomial_feature_expansion(data):
     Applies a polynomial feature expansion of degree 2 to the input data.
 
     Parameters:
-    data : pd.DataFrame
-        Input data where the last column is the label.
+    data: Input data where the last column is the label.
 
     Returns:
-    expanded_data : pd.DataFrame
-        Expanded version of the data with new columns including:
+    expanded_data: Expanded version of the data with new columns including:
         - The squared terms of each feature
         - All pairwise products of the features
     """
@@ -392,7 +387,129 @@ def polynomial_feature_expansion(data):
     return expanded_data
 
 
+def gaussian_kernel(x1, x2, sigma=1.0):
+    """
+    Compute the Gaussian kernel (Radial Basis Function kernel) between two vectors.
 
+    Parameters:
+    ----------
+    x1: First input vector.
+    x2: Second input vector.
+    sigma: Standard deviation of the Gaussian distribution.
+
+    Returns:
+    -------
+    kernel: The Gaussian kernel value between x1 and x2.
+    """
+    return np.exp(-np.linalg.norm(x1 - x2) ** 2 / (2 * sigma ** 2))
+
+def polynomial_kernel(x1, x2, c=1.0, d=3):
+    """
+    Compute the Polynomial kernel between two vectors.
+
+    Parameters:
+    ----------
+    x1: First input vector.
+    x2: Second input vector.
+    c: Constant term in the polynomial kernel.
+    d: Degree of the polynomial.
+
+    Returns:
+    -------
+    kernel: The Polynomial kernel value between x1 and x2.
+    """
+    return (np.dot(x1, x2) + c) ** d
+
+def kernel_matrix(x1, x2=None, sigma=1, kernel='gaussian', c=1, d=2, mode='training'):
+    """
+    Compute the kernel matrix for the input data using either the Gaussian kernel or the Polynomial kernel.
+
+    Parameters:
+    ----------
+    x1: The input feature matrix.
+    x2: The input feature matrix (only needed for 'testing' mode).
+    sigma: Standard deviation of the Gaussian distribution.
+    kernel: The type of kernel to use ('gaussian' or 'polynomial').
+    c: Constant term in the polynomial kernel.
+    d: Degree of the polynomial.
+    mode: Specifies the mode of computation:
+        - 'training': Compute the kernel matrix for training data (x1 with itself).
+        - 'testing': Compute the kernel matrix between test data (x1) and training data (x2).
+
+    Returns:
+    -------
+    K: The kernel matrix.
+    """
+    if mode == 'training':
+        num_samples = x1.shape[0]
+        K = np.zeros((num_samples, num_samples))
+
+        for i in range(num_samples):
+            for j in range(i, num_samples):  # Compute only half of the matrix due to symmetry
+                if kernel == 'gaussian':
+                    K[i, j] = gaussian_kernel(x1[i], x1[j], sigma)
+                elif kernel == 'polynomial':
+                    K[i, j] = polynomial_kernel(x1[i], x1[j], c, d)
+        K += K.T - np.diag(K.diagonal())  # Make the matrix symmetric
+
+    elif mode == 'testing':
+        if x2 is None:
+            raise ValueError("x2 must be provided for testing mode.")
+        num_samples_1 = x1.shape[0]
+        num_samples_2 = x2.shape[0]
+        K = np.zeros((num_samples_1, num_samples_2))
+
+        for i in range(num_samples_1):
+            for j in range(num_samples_2):
+                if kernel == 'gaussian':
+                    K[i, j] = gaussian_kernel(x1[i], x2[j], sigma)
+                elif kernel == 'polynomial':
+                    K[i, j] = polynomial_kernel(x1[i], x2[j], c, d)
+
+    else:
+        raise ValueError("Invalid mode. Choose 'training' or 'testing'.")
+
+    return K
+
+def kernel_perceptron(x, y, n, sigma=0.1, epochs=1, kernel='gaussian', c=1.0, d=3):
+    """
+    Train a Kernel Perceptron classifier using the specified kernel function.
+
+    Parameters:
+    ----------
+    x: The input feature matrix.
+    y: The target labels that contain values -1 or 1.
+    n: The learning rate for weight updates.
+    sigma: Standard deviation for the Gaussian kernel (used if kernel='gaussian').
+    epochs: The number of times to iterate over the entire dataset during training.
+    kernel: The type of kernel to use ('gaussian' or 'polynomial').
+    c: Constant term in the polynomial kernel (used if kernel='polynomial').
+    d: Degree of the polynomial (used if kernel='polynomial').
+
+    Returns:
+    -------
+    alphas: The weights of the Perceptron in the kernel space.
+    predictions: The predicted labels for the input data.
+    """
+    num_samples = x.shape[0]
+    alphas = np.zeros(num_samples)  # Initialize weights in the dual space
+
+    # Precompute the kernel matrix using the specified kernel
+    K = kernel_matrix(x, sigma=sigma, kernel=kernel, c=c, d=d, mode='training')
+
+    for epoch in range(epochs):
+        for i in range(num_samples):
+            # Compute the prediction using the kernel matrix
+            prediction = np.sum(alphas * y * K[i])
+
+            # Perceptron update rule
+            if y[i] * prediction <= 0:
+                alphas[i] += n
+
+    # Compute the predictions using the precomputed kernel matrix
+    predictions = np.sign(np.dot(alphas * y, K))
+
+    return alphas, predictions
 
 
 
