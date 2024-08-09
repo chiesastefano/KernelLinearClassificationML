@@ -235,11 +235,13 @@ def evaluate_model(x_train, y_train, x_val, y_val, model, params):
     y_train: The target labels for the training set
     x_val: The feature matrix for the validation set
     y_val: The target labels for the validation set
-    model: A string indicating the model to be used ('perceptron', 'pegasos', 'logistic').
+    model: A string indicating the model to be used ('perceptron', 'pegasos', 'logistic', 'kernel_perceptron').
     params: A dictionary containing hyperparameters for the model. The keys depend on the model:
         - For 'perceptron': {'n': learning_rate, 'epochs': number_of_epochs}
         - For 'pegasos': {'lam': regularization_param, 'epochs': number_of_epochs, 'batch_size': batch_size}
         - For 'logistic': {'lam': regularization_param, 'epochs': number_of_epochs, 'batch_size': batch_size}
+        - For 'kernel_perceptron': {'n': learning_rate, 'epochs': number_of_epochs, 'kernel': 'gaussian' or 'polynomial'
+        , 'sigma': sigma, 'c': constant, 'd': degree}
 
     Returns:
     -------
@@ -247,12 +249,29 @@ def evaluate_model(x_train, y_train, x_val, y_val, model, params):
     """
     if model == 'perceptron':
         w, _ = perceptron(x_train, y_train, params['n'], params['epochs'])
+        y_val_pred = np.sign(np.dot(x_val, w))
+
     elif model == 'pegasos':
         w, _ = pegasos(x_train, y_train, params['lam'], params['epochs'], params['batch_size'])
+        y_val_pred = np.sign(np.dot(x_val, w))
+
     elif model == 'logistic':
         w, _ = regularized_logistic(x_train, y_train, params['lam'], params['epochs'], params['batch_size'])
+        y_val_pred = np.sign(np.dot(x_val, w))
 
-    y_val_pred = np.sign(np.dot(x_val, w))
+    elif model == 'kernel_perceptron':
+        if params['kernel'] == 'gaussian':
+            alphas, _ = kernel_perceptron(x_train, y_train, params['n'], sigma=params['sigma'], epochs=params['epochs'],
+                                          kernel='gaussian')
+            k_val = kernel_matrix(x_val, x_train, sigma=params['sigma'], kernel='gaussian', mode='testing')
+
+        elif params['kernel'] == 'polynomial':
+            alphas, _ = kernel_perceptron(x_train, y_train, params['n'], c=params['c'], d=params['d'],
+                                          epochs=params['epochs'], kernel='polynomial')
+            k_val = kernel_matrix(x_val, x_train, c=params['c'], d=params['d'], kernel='polynomial', mode='testing')
+
+        y_val_pred = np.sign(np.dot(k_val, alphas * y_train))
+
     loss = zero_one_loss(y_val_pred, y_val, len(y_val))
 
     return loss
@@ -294,7 +313,7 @@ def grid_search(x, y, model, param_grid, k=5):
     ----------
     x : The input feature matrix
     y : The target labels
-    model : A string indicating the model to be tuned ('perceptron', 'pegasos', 'logistic').
+    model : A string indicating the model to be tuned ('perceptron', 'pegasos', 'logistic', 'kernel_perceptron').
     param_grid : A dictionary where keys are hyperparameter names and values are lists of possible values for those hyperparameters.
     k: The number of folds for cross-validation (default is 10).
 
@@ -305,30 +324,34 @@ def grid_search(x, y, model, param_grid, k=5):
     """
     cv_folds = cross_validation_split(x, y, k)
     best_params = None
-    best_loss = float('inf') # any first loss will be better than this
+    best_loss = float('inf')  # Initialize with a very high loss
 
     param_combinations = generate_combinations(param_grid)
 
     for params in param_combinations:
         avg_loss = 0
 
-        for fold in cv_folds:
-            x_val, y_val = fold
-            # Check if the train set is not equal to the validation set
-            x_train = np.vstack([f[0] for f in cv_folds if not np.array_equal(f[0], x_val)])
-            y_train = np.hstack([f[1] for f in cv_folds if not np.array_equal(f[1], y_val)])
+        for i in range(k):
+            # Extract the validation fold
+            x_val, y_val = cv_folds[i]
 
+            # Create the training set by combining the other folds
+            x_train = np.vstack([cv_folds[j][0] for j in range(k) if j != i])
+            y_train = np.hstack([cv_folds[j][1] for j in range(k) if j != i])
+
+            # Evaluate the model
             loss = evaluate_model(x_train, y_train, x_val, y_val, model, params)
             avg_loss += loss
 
+        # Calculate the average loss over all folds
         avg_loss /= k
 
+        # Check if the current combination has the lowest loss
         if avg_loss < best_loss:
             best_loss = avg_loss
             best_params = params
 
     return best_params, best_loss
-
 
 def polynomial_feature_expansion(data):
     """
