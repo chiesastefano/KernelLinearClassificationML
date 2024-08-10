@@ -231,17 +231,19 @@ def evaluate_model(x_train, y_train, x_val, y_val, model, params):
 
     Parameters:
     ----------
-    x_train: The feature matrix for the training set
-    y_train: The target labels for the training set
-    x_val: The feature matrix for the validation set
-    y_val: The target labels for the validation set
-    model: A string indicating the model to be used ('perceptron', 'pegasos', 'logistic', 'kernel_perceptron').
+    x_train: The feature matrix
+    y_train: The target labels
+    x_val: The feature matrix
+    y_val: The target labels
+    model: A string indicating the model to be used ('perceptron', 'pegasos', 'logistic', 'kernel_perceptron', 'kernel_pegasos')
     params: A dictionary containing hyperparameters for the model. The keys depend on the model:
         - For 'perceptron': {'n': learning_rate, 'epochs': number_of_epochs}
         - For 'pegasos': {'lam': regularization_param, 'epochs': number_of_epochs, 'batch_size': batch_size}
         - For 'logistic': {'lam': regularization_param, 'epochs': number_of_epochs, 'batch_size': batch_size}
         - For 'kernel_perceptron': {'n': learning_rate, 'epochs': number_of_epochs, 'kernel': 'gaussian' or 'polynomial'
         , 'sigma': sigma, 'c': constant, 'd': degree}
+        - For 'kernel_pegasos': {'lam': regularization_param, 'epochs': number_of_epochs, 'batch_size': batch_size,
+          'kernel': 'gaussian' or 'polynomial', 'sigma': sigma, 'c': constant, 'd': degree}
 
     Returns:
     -------
@@ -268,6 +270,19 @@ def evaluate_model(x_train, y_train, x_val, y_val, model, params):
         elif params['kernel'] == 'polynomial':
             alphas, _ = kernel_perceptron(x_train, y_train, params['n'], c=params['c'], d=params['d'],
                                           epochs=params['epochs'], kernel='polynomial')
+            k_val = kernel_matrix(x_val, x_train, c=params['c'], d=params['d'], kernel='polynomial', mode='testing')
+
+        y_val_pred = np.sign(np.dot(k_val, alphas * y_train))
+
+    elif model == 'kernel_pegasos':
+        if params['kernel'] == 'gaussian':
+            alphas, _ = kernel_pegasos(x_train, y_train, params['lam'], params['epochs'], params['batch_size'],
+                                           kernel='gaussian', sigma=params['sigma'])
+            k_val = kernel_matrix(x_val, x_train, sigma=params['sigma'], kernel='gaussian', mode='testing')
+
+        elif params['kernel'] == 'polynomial':
+            alphas, _ = kernel_pegasos(x_train, y_train, params['lam'], params['epochs'], params['batch_size'],
+                                           kernel='polynomial', c=params['c'], d=params['d'])
             k_val = kernel_matrix(x_val, x_train, c=params['c'], d=params['d'], kernel='polynomial', mode='testing')
 
         y_val_pred = np.sign(np.dot(k_val, alphas * y_train))
@@ -313,7 +328,7 @@ def grid_search(x, y, model, param_grid, k=5):
     ----------
     x : The input feature matrix
     y : The target labels
-    model : A string indicating the model to be tuned ('perceptron', 'pegasos', 'logistic', 'kernel_perceptron').
+    model : A string indicating the model to be tuned ('perceptron', 'pegasos', 'logistic', 'kernel_perceptron', 'kernel_pegasos').
     param_grid : A dictionary where keys are hyperparameter names and values are lists of possible values for those hyperparameters.
     k: The number of folds for cross-validation (default is 10).
 
@@ -517,24 +532,77 @@ def kernel_perceptron(x, y, n, sigma=0.1, epochs=1, kernel='gaussian', c=1.0, d=
     num_samples = x.shape[0]
     alphas = np.zeros(num_samples)  # Initialize weights in the dual space
 
-    # Precompute the kernel matrix using the specified kernel
-    K = kernel_matrix(x, sigma=sigma, kernel=kernel, c=c, d=d, mode='training')
+    # Compute the kernel matrix using the specified kernel
+    k = kernel_matrix(x, sigma=sigma, kernel=kernel, c=c, d=d, mode='training')
 
     for epoch in range(epochs):
         for i in range(num_samples):
             # Compute the prediction using the kernel matrix
-            prediction = np.sum(alphas * y * K[i])
+            prediction = np.sum(alphas * y * k[i])
 
             # Perceptron update rule
             if y[i] * prediction <= 0:
                 alphas[i] += n
 
     # Compute the predictions using the precomputed kernel matrix
-    predictions = np.sign(np.dot(alphas * y, K))
+    predictions = np.sign(np.dot(alphas * y, k))
 
     return alphas, predictions
 
 
+def kernel_pegasos(x, y, lam, epochs, batch_size, kernel='gaussian', sigma=1.0, c=1.0, d=2):
+    """
+    Train a kernelized SVM classifier using the Pegasos algorithm with either Gaussian or Polynomial kernel.
+
+    Parameters:
+    ----------
+    x: The input feature matrix.
+    y: The target labels that contain values -1 or 1.
+    lam: The regularization parameter.
+    epochs: The number of epochs for training.
+    batch_size: The number of samples per batch.
+    kernel: The type of kernel ('gaussian' or 'polynomial').
+    sigma: Standard deviation for the Gaussian kernel.
+    c: Constant term for the polynomial kernel.
+    d: Degree of the polynomial kernel.
+
+    Returns:
+    -------
+    alphas: The final weights (dual variables).
+    predictions: The predicted labels for the input data.
+    """
+    if batch_size > x.shape[0]:
+        raise ValueError("Batch size cannot be larger than the number of samples in the dataset.")
+
+    num_samples = x.shape[0]
+    alphas = np.zeros(num_samples)
+    t = 0
+
+    # Compute the full kernel matrix
+    k = kernel_matrix(x, kernel=kernel, sigma=sigma, c=c, d=d)
+
+    for epoch in range(epochs):
+        for _ in range(x.shape[0] // batch_size):
+            t += 1
+            eta = 1 / (lam * t)  # Update learning rate
+
+            # Randomly sample a batch
+            batch_indices = np.random.randint(0, x.shape[0], batch_size)
+
+            # Select from the precomputed kernel matrix the batch rows and columns
+            k_batch = k[batch_indices]
+
+            for i in range(batch_size):
+                # Decision function using the kernel
+                decision_value = np.sum(alphas * y * k_batch[i]) * (1 / (lam * t))
+
+                if y[batch_indices[i]] * decision_value < 1:
+                    alphas[batch_indices[i]] += 1
+
+    # Compute predictions on the training data
+    predictions = np.sign(np.dot(k, alphas * y))
+
+    return alphas, predictions
 
 
 
