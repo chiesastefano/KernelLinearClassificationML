@@ -11,7 +11,7 @@ Professor: **Nicolò Cesa Bianchi**
 
 **/Data**:
 - **`your_dataset.csv`**:the dataset used in `test.ipynb` to demonstrate the performance of the Kernelized Pegasos algorithm. \
-\
+\\
 **Kernelized_Linear_Classification.pdf**: A detailed report on the implementation and performance of the Kernelized Pegasos algorithm.
 
 
