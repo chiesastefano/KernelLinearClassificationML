@@ -5,6 +5,7 @@ Student: **Stefano Chiesa** \
 Professor: **Nicolò Cesa Bianchi**
 
 ## Contents
+**`Kernelized_Linear_Classification.pdf`**: A detailed report on the implementation and performance of the Kernelized Pegasos algorithm.
 **/Code**
 - **`functions.py`**: This script contains the main functions used for the Kernelized Pegasos algorithm implementation;
 - **`test.ipynb`**: A Jupyter Notebook that shows the cleaning of the Data and the training and testing procedure of the algorithms; \
@@ -12,7 +13,6 @@ Professor: **Nicolò Cesa Bianchi**
 **/Data**:
 - **`your_dataset.csv`**:the dataset used in `test.ipynb` to demonstrate the performance of the Kernelized Pegasos algorithm. \
 
-**Kernelized_Linear_Classification.pdf**: A detailed report on the implementation and performance of the Kernelized Pegasos algorithm.
 
 
 
